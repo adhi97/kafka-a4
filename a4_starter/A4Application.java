@@ -48,16 +48,12 @@ public class A4Application {
 		KGroupedStream<String, String> studentGStream = students.groupByKey();
 		KGroupedStream<String, String> classroomGStream = classrooms.groupByKey();
 
-		KTable<String, Long> totalCapacity = classroomGStream.aggregate(
-			() -> 0L,
-			(key, value) -> value,
-			Materialized.as("aggregated-stream-store") /* state store name */
-			.withValueSerde(Serdes.Long())); /* serde for aggregate value */
+		KTable<String, Long> totalCapacity = classroomGStream.reduce((x, y) -> y)
+			.mapValues(x -> Long.parseLong(x));
 
-		KTable<String, Long> occupied =
-			studentGStream.reduce((key, value) -> value)
-						.groupBy((studentID, roomID) -> KeyValue.pair(roomID.toString(), studentID))
-						.count();
+		KTable<String, Long> occupied = studentGStream.reduce((key, value) -> value)
+			.groupBy((studentID, roomID) -> KeyValue.pair(roomID.toString(), studentID))
+			.count();
 
 		// Build change stream
 		

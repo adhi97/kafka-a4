@@ -15,7 +15,6 @@ import org.apache.kafka.streams.kstream.Serialized;
 import org.apache.kafka.streams.state.KeyValueStore;
 
 import java.util.Arrays;
-import java.lang.Long;
 import java.util.Properties;
 
 
@@ -62,10 +61,10 @@ public class A4Application {
 		// Build change stream
 		
 		KStream<String, KeyValue> occupancyChangeStream = occupied.toStream().leftJoin(totalCapacity,
-			(occupants, capacity) -> KeyValue.pair(Long(occupants), Long(capacity)));
+			(occupants, capacity) -> KeyValue.pair(occupants, capacity));
 
 		KStream<String, KeyValue> capacityChangeStream = totalCapacity.toStream().leftJoin(occupied,
-      		(capacity, occupants) -> KeyValue.pair(Long(occupants), Long(capacity)));
+      		(capacity, occupants) -> KeyValue.pair(occupants, capacity));
 		
 		KStream<String, KeyValue> changeInfoStream = occupancyChangeStream.merge(capacityChangeStream);
 		

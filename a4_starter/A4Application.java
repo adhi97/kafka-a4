@@ -48,12 +48,14 @@ public class A4Application {
 		KGroupedStream<String, String> studentGStream = students.groupByKey();
 		KGroupedStream<String, String> classroomGStream = classrooms.groupByKey();
 
-		KTable<String, Long> totalCapacity = classroomGStream.reduce((x, y) -> y)
-			.mapValues(x -> Long.parseLong(x));
+		KTable<String, Long> totalCapacity = classroomGStream
+					.reduce((x, y) -> y)
+					.mapValues(x -> Long.parseLong(x));
 
-		KTable<String, Long> occupied = studentGStream.reduce((key, value) -> value)
-			.groupBy((studentID, roomID) -> KeyValue.pair(roomID.toString(), studentID))
-			.count();
+		KTable<String, Long> occupied = studentGStream
+					.reduce((key, value) -> value)
+					.groupBy((studentID, roomID) -> KeyValue.pair(roomID.toString(), studentID))
+					.count();
 
 		// Build change stream
 		
@@ -65,7 +67,25 @@ public class A4Application {
 		
 		KStream<String, KeyValue> changeInfoStream = occupancyChangeStream.merge(capacityChangeStream);
 		
-		changeInfoStream.to(outputTopic); // this is just to test the change stream
+		KTable<String, Long> roomOverflow =
+			changeInfoStream.map((k, v) -> KeyValue.pair(k, v.key - v.value))
+							.groupByKey(Serialized.with(Serdes.String(), Serdes.Long()))
+							.reduce((key, value) -> value);
+
+		KStream<String, String> result =
+			changeInfoStream.join(roomOverflow, (changeInfo, numOverflowing) -> KeyValue.pair(changeInfo, numOverflowing))
+							.filter((k, v) -> {
+								KeyValue changeLog = v.key;
+								return changeLog.value > changeLog.key || (changeLog.key == changeLog.value && v.value > 0L);
+							})
+							.map((k, v) -> {
+								KeyValue rmInfo = v.key;
+								String toPrint = rmInfo.key == rmInfo.value ? "OK" : String.valueOf(rmInfo.value);
+								return KeyValue.pair(k, toPrint);
+							});
+		
+		result.to(outputTopic);
+
         KafkaStreams streams = new KafkaStreams(builder.build(), props);
 
 		// this line initiates processing

@@ -1,0 +1,7 @@
+*.class
+.DS_Store
+/*/.DS_Store
+sample_input_output/
+sample_input/
+sample_output/
+/bin/

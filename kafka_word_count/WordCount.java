@@ -33,7 +33,7 @@ public class WordCount {
 		config.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
 		config.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
 		config.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, 100);
-		props.put(StreamsConfig.STATE_DIR_CONFIG, stateStoreDir);
+		config.put(StreamsConfig.STATE_DIR_CONFIG, stateStoreDir);
 
 		StreamsBuilder builder = new StreamsBuilder();
 		KStream<String, String> textLines = builder.stream(inputTopic);

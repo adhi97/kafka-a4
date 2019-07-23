@@ -21,4 +21,4 @@ fi
 
 echo --- WordCount demo has benn started
 
-$JAVA WordCount $KBROKERS wordcount-input-$USER wordcount-output-$USER wordcount-$USER
+$JAVA WordCount $KBROKERS wordcount-input-$USER wordcount-output-$USER wordcount-$USER $STATE_STORE_DIR

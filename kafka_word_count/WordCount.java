@@ -25,6 +25,7 @@ public class WordCount {
 		String inputTopic = args[1];
 		String outputTopic = args[2];
 		String applicationId = args[3];
+		String stateStoreDir = args[4];
 
 		Properties config = new Properties();
 		config.put(StreamsConfig.APPLICATION_ID_CONFIG, applicationId);
@@ -32,6 +33,7 @@ public class WordCount {
 		config.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
 		config.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
 		config.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, 100);
+		props.put(StreamsConfig.STATE_DIR_CONFIG, stateStoreDir);
 
 		StreamsBuilder builder = new StreamsBuilder();
 		KStream<String, String> textLines = builder.stream(inputTopic);

@@ -61,10 +61,10 @@ public class A4Application {
 		// Build change stream
 		
 		KStream<String, KeyValue> occupancyChangeStream = occupied.toStream().leftJoin(totalCapacity,
-			(occupants, capacity) -> KeyValue.pair((Long)occupants, (Long)capacity));
+			(occupants, capacity) -> KeyValue.pair(Long(occupants), Long(capacity)));
 
 		KStream<String, KeyValue> capacityChangeStream = totalCapacity.toStream().leftJoin(occupied,
-      		(capacity, occupants) -> KeyValue.pair((Long)occupants, (Long)capacity));
+      		(capacity, occupants) -> KeyValue.pair(Long(occupants), Long(capacity)));
 		
 		KStream<String, KeyValue> changeInfoStream = occupancyChangeStream.merge(capacityChangeStream);
 		

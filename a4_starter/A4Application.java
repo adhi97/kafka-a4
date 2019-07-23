@@ -15,7 +15,7 @@ import org.apache.kafka.streams.kstream.Serialized;
 import org.apache.kafka.streams.state.KeyValueStore;
 
 import java.util.Arrays;
-import java.lang.Number;
+import java.lang.Long;
 import java.util.Properties;
 
 

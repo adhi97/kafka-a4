@@ -20,38 +20,54 @@ public class A4Application {
 
     public static void main(String[] args) throws Exception {
 	// do not modify the structure of the command line
-	String bootstrapServers = args[0];
-	String appName = args[1];
-	String studentTopic = args[2];
-	String classroomTopic = args[3];
-	String outputTopic = args[4];
-	String stateStoreDir = args[5];
+		String bootstrapServers = args[0];
+		String appName = args[1];
+		String studentTopic = args[2];
+		String classroomTopic = args[3];
+		String outputTopic = args[4];
+		String stateStoreDir = args[5];
 
-        Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, appName);
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-	props.put(StreamsConfig.CACHE_MAX_BYTES_BUFFERING_CONFIG, 0);
-        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
-        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
-	props.put(StreamsConfig.STATE_DIR_CONFIG, stateStoreDir);
+		Properties props = new Properties();
+		props.put(StreamsConfig.APPLICATION_ID_CONFIG, appName);
+		props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+		props.put(StreamsConfig.CACHE_MAX_BYTES_BUFFERING_CONFIG, 0);
+		props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
+		props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
+		props.put(StreamsConfig.STATE_DIR_CONFIG, stateStoreDir);
 
 	// add code here if you need any additional configuration options
 
         StreamsBuilder builder = new StreamsBuilder();
 
-	// add code here
-	// 
-        // ... = builder.stream(studentTopic);
-        // ... = builder.stream(classroomTopic);
-	// ...
-	// ...to(outputTopic);
+		// add code here
+		// 
+		KStream<String, String> students = builder.stream(studentTopic);
+		KStream<String, String> classrooms = builder.stream(classroomTopic);
 
+		KGroupedStream<String, String> studentGStream = students.groupByKey();
+		KGroupedStream<String, String> classroomGStream = classrooms.groupByKey();
+
+		KTable<String, Long> totalCapacity = classroomGStream.aggregate(
+			() -> 0L,
+			(key, value) -> value,
+			Materialized.as("aggregated-stream-store") /* state store name */
+			.withValueSerde(Serdes.Long())); /* serde for aggregate value */
+
+		KTable<String, Long> occupied =
+			studentGStream.reduce((key, value) -> value)
+						.groupBy((studentID, roomID) -> KeyValue.pair(roomID.toString(), studentID))
+						.count();
+
+		// Build change stream
+		
+		
+		
         KafkaStreams streams = new KafkaStreams(builder.build(), props);
 
-	// this line initiates processing
-	streams.start();
+		// this line initiates processing
+		streams.start();
 
-	// shutdown hook for Ctrl+C
-	Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
+		// shutdown hook for Ctrl+C
+		Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
     }
 }

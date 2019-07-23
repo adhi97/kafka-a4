@@ -11,6 +11,7 @@ import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Produced;
 import org.apache.kafka.streams.kstream.TimeWindows;
+import org.apache.kafka.streams.kstream.Serialized;
 import org.apache.kafka.streams.state.KeyValueStore;
 
 import java.util.Arrays;
@@ -68,7 +69,7 @@ public class A4Application {
 		KStream<String, KeyValue> changeInfoStream = occupancyChangeStream.merge(capacityChangeStream);
 		
 		KTable<String, Long> roomOverflow =
-			changeInfoStream.map((k, v) -> KeyValue.pair(k, v.key - v.value))
+			changeInfoStream.map((k, v) -> KeyValue.pair(k, v.value - v.key))
 							.groupByKey(Serialized.with(Serdes.String(), Serdes.Long()))
 							.reduce((key, value) -> value);
 

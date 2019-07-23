@@ -60,8 +60,15 @@ public class A4Application {
 
 		// Build change stream
 		
+		KStream<String, KeyValue> occupancyChangeStream = occupied.toStream().leftJoin(totalCapacity,
+			(occupants, capacity) -> KeyValue.pair(occupants, capacity));
+
+		KStream<String, KeyValue> capacityChangeStream = totalCapacity.toStream().leftJoin(occupied,
+      		(capacity, occupants) -> KeyValue.pair(occupants, capacity));
 		
+		KStream<String, KeyValue> changeInfoStream = occupancyChangeStream.merge(capacityChangeStream);
 		
+		changeInfoStream.to(outputTopic); // this is just to test the change stream
         KafkaStreams streams = new KafkaStreams(builder.build(), props);
 
 		// this line initiates processing

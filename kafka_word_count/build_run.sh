@@ -20,5 +20,5 @@ else
 fi
 
 echo --- WordCount demo has benn started
-
-$JAVA WordCount $KBROKERS wordcount-input-$USER wordcount-output-$USER wordcount-$USER
+# changing $user to bdrami
+$JAVA WordCount $KBROKERS wordcount-input-bdrami wordcount-output-bdrami wordcount-bdrami

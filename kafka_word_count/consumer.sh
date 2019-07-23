@@ -8,7 +8,7 @@ source ./settings.sh
 
 ${KAFKA_HOME}/bin/kafka-console-consumer.sh \
     --bootstrap-server $KBROKERS \
-    --topic wordcount-output-$USER \
+    --topic wordcount-output-bdrami \
     --property print.key=true \
     --property print.value=true \
     --property key.separator=, \

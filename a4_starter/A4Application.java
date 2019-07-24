@@ -76,11 +76,11 @@ public class A4Application {
 		KStream<String, String> result =
 			changeInfoStream.join(roomOverflow, (changeInfo, numOverflowing) -> KeyValue.pair(changeInfo, numOverflowing))
 							.filter((k, v) -> {
-								KeyValue changeLog = v.key;
+								StoreKeyVal changeLog = v.key;
 								return changeLog.value > changeLog.key || (changeLog.key == changeLog.value && v.value > 0L);
 							})
 							.map((k, v) -> {
-								KeyValue rmInfo = v.key;
+								StoreKeyVal rmInfo = v.key;
 								String toPrint = rmInfo.key == rmInfo.value ? "OK" : String.valueOf(rmInfo.value);
 								return KeyValue.pair(k, toPrint);
 							});

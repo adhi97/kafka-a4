@@ -70,11 +70,11 @@ public class A4Application {
 
 		// Build change stream
 		
-		KStream<String, StoreKeyVal> studentChangeLogs = occupied.toStream().leftJoin(totalCapacity,
-			(occupants, capacity) -> new StoreKeyVal(occupants, capacity));
+		KStream<String, StoreKeyVal> studentChangeLogs = occupied.toStream()
+				.leftJoin(totalCapacity, (numStudents, size) -> new StoreKeyVal(numStudents, size));
 
-		KStream<String, StoreKeyVal> roomChangeLogs = totalCapacity.toStream().leftJoin(occupied,
-      		(capacity, occupants) -> new StoreKeyVal(occupants, capacity));
+		KStream<String, StoreKeyVal> roomChangeLogs = totalCapacity.toStream()
+				.leftJoin(occupied, (size, numStudents) -> new StoreKeyVal(numStudents, size));
 		
 		KStream<String, StoreKeyVal> overallChangeStream = studentChangeLogs.merge(roomChangeLogs);
 		

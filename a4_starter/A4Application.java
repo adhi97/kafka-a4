@@ -29,7 +29,7 @@ public class A4Application {
 			this.size = y == null ? Long.MAX_VALUE : y;
 		}
 	}
-	
+
     public static void main(String[] args) throws Exception {
 	// do not modify the structure of the command line
 		String bootstrapServers = args[0];
@@ -60,8 +60,8 @@ public class A4Application {
 		KGroupedStream<String, String> classroomGStream = classrooms.groupByKey();
 
 		KTable<String, Long> totalCapacity = classroomGStream
-					.reduce((x, y) -> y)
-					.mapValues(x -> Long.parseLong(x));
+					.reduce((k, v) -> v)
+					.mapValues(k -> Long.parseLong(k));
 
 		KTable<String, Long> occupied = studentGStream
 					.reduce((key, value) -> value)
@@ -84,7 +84,7 @@ public class A4Application {
 							.reduce((key, value) -> value);
 
 		KStream<String, String> result =
-			overallChangeStream.join(limitExceeded, (changeInfo, numOverflowing) -> KeyValue.pair(changeInfo, numOverflowing))
+			overallChangeStream.join(limitExceeded, (changes, overflow) -> KeyValue.pair(changes, overflow))
 							.filter((k, v) -> {
 								StoreKeyVal changeLog = v.key;
 								return changeLog.numOccupants > changeLog.size || (changeLog.numOccupants == changeLog.size && v.value > 0L);

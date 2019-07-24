@@ -61,15 +61,15 @@ public class A4Application {
 		// Build change stream
 		
 		KStream<String, KeyValue> occupancyChangeStream = occupied.toStream().leftJoin(totalCapacity,
-			(occupants, capacity) -> KeyValue.pair(occupants, capacity));
+			(occupants, capacity) -> new StoreKeyVal(occupants, capacity));
 
 		KStream<String, KeyValue> capacityChangeStream = totalCapacity.toStream().leftJoin(occupied,
-      		(capacity, occupants) -> KeyValue.pair(occupants, capacity));
+      		(capacity, occupants) -> new StoreKeyVal(occupants, capacity));
 		
 		KStream<String, KeyValue> changeInfoStream = occupancyChangeStream.merge(capacityChangeStream);
 		
 		KTable<String, Long> roomOverflow =
-			changeInfoStream.map((k, v) -> KeyValue.pair(k, v.value - v.key))
+			changeInfoStream.map((k, v) -> KeyValue.pair(k, v.numOccupants - v.size))
 							.groupByKey(Serialized.with(Serdes.String(), Serdes.Long()))
 							.reduce((key, value) -> value);
 
@@ -94,5 +94,15 @@ public class A4Application {
 
 		// shutdown hook for Ctrl+C
 		Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
-    }
+	}
+	
+	class StoreKeyVal {
+		Long size;
+		Long numOccupants;
+
+		public StoreKeyVal (Long x, Long y) {
+			this.numOccupants = x == null ? 0L : x;
+			this.size = y == null ? Long.MAX_VALUE : y;
+		}
+	}
 }

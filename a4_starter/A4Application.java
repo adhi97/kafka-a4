@@ -77,11 +77,11 @@ public class A4Application {
 			changeInfoStream.join(roomOverflow, (changeInfo, numOverflowing) -> KeyValue.pair(changeInfo, numOverflowing))
 							.filter((k, v) -> {
 								StoreKeyVal changeLog = v.key;
-								return changeLog.value > changeLog.key || (changeLog.key == changeLog.value && v.value > 0L);
+								return changeLog.numOccupants > changeLog.size || (changeLog.numOccupants == changeLog.size && v.value > 0L);
 							})
 							.map((k, v) -> {
 								StoreKeyVal rmInfo = v.key;
-								String toPrint = rmInfo.key == rmInfo.value ? "OK" : String.valueOf(rmInfo.value);
+								String toPrint = rmInfo.numOccupants == rmInfo.size ? "OK" : String.valueOf(rmInfo.numOccupants);
 								return KeyValue.pair(k, toPrint);
 							});
 		

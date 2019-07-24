@@ -96,7 +96,7 @@ public class A4Application {
 		Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
 	}
 	
-	class StoreKeyVal {
+	static class StoreKeyVal {
 		Long size;
 		Long numOccupants;
 

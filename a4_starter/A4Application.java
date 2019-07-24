@@ -60,28 +60,28 @@ public class A4Application {
 
 		// Build change stream
 		
-		KStream<String, StoreKeyVal> occupancyChangeStream = occupied.toStream().leftJoin(totalCapacity,
+		KStream<String, StoreKeyVal> studentChangeLogs = occupied.toStream().leftJoin(totalCapacity,
 			(occupants, capacity) -> new StoreKeyVal(occupants, capacity));
 
-		KStream<String, StoreKeyVal> capacityChangeStream = totalCapacity.toStream().leftJoin(occupied,
+		KStream<String, StoreKeyVal> roomChangeLogs = totalCapacity.toStream().leftJoin(occupied,
       		(capacity, occupants) -> new StoreKeyVal(occupants, capacity));
 		
-		KStream<String, StoreKeyVal> changeInfoStream = occupancyChangeStream.merge(capacityChangeStream);
+		KStream<String, StoreKeyVal> overallChangeStream = studentChangeLogs.merge(roomChangeLogs);
 		
-		KTable<String, Long> roomOverflow =
-			changeInfoStream.map((k, v) -> KeyValue.pair(k, v.numOccupants - v.size))
+		KTable<String, Long> limitExceeded =
+			overallChangeStream.map((k, v) -> KeyValue.pair(k, v.numOccupants - v.size))
 							.groupByKey(Serialized.with(Serdes.String(), Serdes.Long()))
 							.reduce((key, value) -> value);
 
 		KStream<String, String> result =
-			changeInfoStream.join(roomOverflow, (changeInfo, numOverflowing) -> KeyValue.pair(changeInfo, numOverflowing))
+			overallChangeStream.join(limitExceeded, (changeInfo, numOverflowing) -> KeyValue.pair(changeInfo, numOverflowing))
 							.filter((k, v) -> {
 								StoreKeyVal changeLog = v.key;
 								return changeLog.numOccupants > changeLog.size || (changeLog.numOccupants == changeLog.size && v.value > 0L);
 							})
 							.map((k, v) -> {
-								StoreKeyVal rmInfo = v.key;
-								String toPrint = rmInfo.numOccupants == rmInfo.size ? "OK" : String.valueOf(rmInfo.numOccupants);
+								StoreKeyVal skv = v.key;
+								String toPrint = skv.numOccupants == skv.size ? "OK" : String.valueOf(skv.numOccupants);
 								return KeyValue.pair(k, toPrint);
 							});
 		

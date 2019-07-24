@@ -60,13 +60,13 @@ public class A4Application {
 
 		// Build change stream
 		
-		KStream<String, KeyValue> occupancyChangeStream = occupied.toStream().leftJoin(totalCapacity,
+		KStream<String, StoreKeyVal> occupancyChangeStream = occupied.toStream().leftJoin(totalCapacity,
 			(occupants, capacity) -> new StoreKeyVal(occupants, capacity));
 
-		KStream<String, KeyValue> capacityChangeStream = totalCapacity.toStream().leftJoin(occupied,
+		KStream<String, StoreKeyVal> capacityChangeStream = totalCapacity.toStream().leftJoin(occupied,
       		(capacity, occupants) -> new StoreKeyVal(occupants, capacity));
 		
-		KStream<String, KeyValue> changeInfoStream = occupancyChangeStream.merge(capacityChangeStream);
+		KStream<String, StoreKeyVal> changeInfoStream = occupancyChangeStream.merge(capacityChangeStream);
 		
 		KTable<String, Long> roomOverflow =
 			changeInfoStream.map((k, v) -> KeyValue.pair(k, v.numOccupants - v.size))

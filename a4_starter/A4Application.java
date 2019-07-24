@@ -20,6 +20,16 @@ import java.util.Properties;
 
 public class A4Application {
 
+	static class StoreKeyVal {
+		Long size;
+		Long numOccupants;
+
+		public StoreKeyVal (Long x, Long y) {
+			this.numOccupants = x == null ? 0L : x;
+			this.size = y == null ? Long.MAX_VALUE : y;
+		}
+	}
+	
     public static void main(String[] args) throws Exception {
 	// do not modify the structure of the command line
 		String bootstrapServers = args[0];
@@ -94,15 +104,5 @@ public class A4Application {
 
 		// shutdown hook for Ctrl+C
 		Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
-	}
-	
-	static class StoreKeyVal {
-		Long size;
-		Long numOccupants;
-
-		public StoreKeyVal (Long x, Long y) {
-			this.numOccupants = x == null ? 0L : x;
-			this.size = y == null ? Long.MAX_VALUE : y;
-		}
 	}
 }

@@ -71,10 +71,10 @@ public class A4Application {
 		// Build change stream
 		
 		KStream<String, StoreKeyVal> studentChangeLogs = occupied.toStream()
-				.leftJoin(totalCapacity, (numStudents, size) -> new StoreKeyVal(numStudents, size));
+				.join(totalCapacity, (numStudents, size) -> new StoreKeyVal(numStudents, size));
 
 		KStream<String, StoreKeyVal> roomChangeLogs = totalCapacity.toStream()
-				.leftJoin(occupied, (size, numStudents) -> new StoreKeyVal(numStudents, size));
+				.join(occupied, (size, numStudents) -> new StoreKeyVal(numStudents, size));
 		
 		KStream<String, StoreKeyVal> overallChangeStream = studentChangeLogs.merge(roomChangeLogs);
 		
@@ -86,10 +86,6 @@ public class A4Application {
 		KStream<String, String> result =
 			overallChangeStream.join(limitExceeded, (changes, overflow) -> KeyValue.pair(changes, overflow))
 							.filter((k, v) -> {
-								StoreKeyVal changeLog = v.key;
-								return changeLog.numOccupants > changeLog.size || (changeLog.numOccupants == changeLog.size && v.value > 0L);
-							})
-							.map((k, v) -> {
 								StoreKeyVal skv = v.key;
 								String toPrint = skv.numOccupants == skv.size ? "OK" : String.valueOf(skv.numOccupants);
 								return KeyValue.pair(k, toPrint);
